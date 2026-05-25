@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仕事を探してみよう</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-dark: #085041;
+    --green-mid: #9FE1CB;
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --bg: #fafaf9;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* progress */
+  .progress-bar {
+    height: 3px;
+    background: #e5e7eb;
+    border-radius: 99px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--green);
+    border-radius: 99px;
+    transition: width 0.5s ease;
+  }
+
+  /* labels */
+  .top-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 1.1rem;
+  }
+
+  /* questions */
+  .q-text {
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 0.3rem;
+  }
+  .sub-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 1.75rem;
+    line-height: 1.6;
+  }
+
+  /* options */
+  .options { display: flex; flex-direction: column; gap: 9px; margin-bottom: 1.75rem; }
+  .opt-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    color: var(--text);
+    line-height: 1.55;
+    width: 100%;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .opt-btn:hover { background: #f3f4f6; border-color: var(--border-strong); }
+
+  /* nav */
+  .nav-row { display: flex; gap: 10px; }
+  .btn-back {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    color: var(--text-muted);
+  }
+  .btn-back:hover { background: #f3f4f6; }
+  .btn-next {
+    flex: 1;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 500;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .btn-next:disabled { background: #d1d5db; color: #9ca3af; cursor: default; }
+  .btn-next:not(:disabled):hover { opacity: 0.88; }
+
+  /* intro */
+  .intro-icon { font-size: 32px; color: var(--green); margin-bottom: 1.5rem; line-height: 1; }
+  .intro-title { font-size: 24px; font-weight: 500; color: var(--text); line-height: 1.5; margin-bottom: 0.75rem; }
+  .intro-body { font-size: 14px; color: var(--text-muted); line-height: 1.9; margin-bottom: 2rem; }
+  .start-btn {
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 15px 36px;
+    font-size: 16px;
+    font-weight: 500;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .start-btn:hover { opacity: 0.88; }
+
+  /* result */
+  .result-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.7rem;
+    margin-top: 1.75rem;
+  }
+  .job-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 10px;
+  }
+  .job-title { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+  .job-desc { font-size: 13px; color: var(--text-muted); line-height: 1.65; margin-bottom: 9px; }
+  .fit-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 9px; border-radius: 99px; }
+  .bg { background: #E1F5EE; color: #085041; }
+  .bb { background: #E6F1FB; color: #0C447C; }
+  .ba { background: #FAEEDA; color: #633806; }
+  .job-links { display: flex; flex-wrap: wrap; gap: 6px; }
+  .job-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--green-dark);
+    background: var(--green-light);
+    border-radius: 99px;
+    padding: 4px 12px;
+    text-decoration: none;
+    border: 1px solid var(--green-mid);
+    transition: background 0.12s;
+  }
+  .job-link:hover { background: var(--green-mid); }
+  .link-note { font-size: 11px; color: #9ca3af; margin-top: 7px; line-height: 1.5; }
+
+  .consult-card {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 9px;
+    border: 1px solid var(--border);
+  }
+  .consult-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+  .consult-note { font-size: 13px; color: var(--text-muted); line-height: 1.65; }
+
+  .hint-box {
+    background: var(--green-light);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.5rem;
+    font-size: 13px;
+    color: var(--green-dark);
+    line-height: 1.75;
+  }
+
+  .btn-sub {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 13px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    color: var(--text-muted);
+    margin-top: 1rem;
+    margin-right: 8px;
+    transition: background 0.12s;
+  }
+  .btn-sub:hover { background: #f3f4f6; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- イントロ -->
+  <div class="screen active" id="s-intro">
+    <div class="intro-icon">&#9733;</div>
+    <div class="intro-title">自分のペースで、<br>仕事を探してみよう</div>
+    <div class="intro-body">
+      正解も不正解もないよ。<br>
+      思ったことをそのまま選んでね。<br>
+      全部で 7 つの質問です。
+    </div>
+    <button class="start-btn" id="btn-start">はじめる</button>
+  </div>
+
+  <!-- Q1 -->
+  <div class="screen" id="s-q1">
+    <div class="progress-bar"><div class="progress-fill" style="width:14%"></div></div>
+    <div class="top-label">1 / 7</div>
+    <div class="q-text">どんな環境だと、ほっとする？</div>
+    <div class="sub-text">一番近いものをひとつ選んでね</div>
+    <div class="options" id="o1">
+      <button class="opt-btn" data-q="1" data-v="quiet">静かで、ひとりになれる場所</button>
+      <button class="opt-btn" data-q="1" data-v="small">少人数でわいわいできる場所</button>
+      <button class="opt-btn" data-q="1" data-v="outdoor">外や自然の中にいるとき</button>
+      <button class="opt-btn" data-q="1" data-v="flexible">決まった場所よりも、自由に動けるとき</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="intro">もどる</button>
+      <button class="btn-next" id="nx1" disabled data-to="q2">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="screen" id="s-q2">
+    <div class="progress-bar"><div class="progress-fill" style="width:28%"></div></div>
+    <div class="top-label">2 / 7</div>
+    <div class="q-text">仕事の指示は、どんなほうがいい？</div>
+    <div class="sub-text">「こうしてほしい」という希望に近いもの</div>
+    <div class="options" id="o2">
+      <button class="opt-btn" data-q="2" data-v="specific">具体的に、ひとつずつ教えてほしい</button>
+      <button class="opt-btn" data-q="2" data-v="overview">大まかな方向だけ決めてもらえれば、あとは自分で</button>
+      <button class="opt-btn" data-q="2" data-v="check">途中でこまめに確認しながら進めたい</button>
+      <button class="opt-btn" data-q="2" data-v="collab">一緒に考えながら進めたい</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q1">もどる</button>
+      <button class="btn-next" id="nx2" disabled data-to="q3">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="screen" id="s-q3">
+    <div class="progress-bar"><div class="progress-fill" style="width:42%"></div></div>
+    <div class="top-label">3 / 7</div>
+    <div class="q-text">一日の仕事の流れ、どんなイメージが合う？</div>
+    <div class="sub-text">自分のリズムに一番近いもの</div>
+    <div class="options" id="o3">
+      <button class="opt-btn" data-q="3" data-v="routine">毎日ほぼ同じ流れで、予測できるほうがいい</button>
+      <button class="opt-btn" data-q="3" data-v="varied">毎日少し変化があったほうが飽きなくていい</button>
+      <button class="opt-btn" data-q="3" data-v="focus">ひとつのことに深く集中する時間が長いほうがいい</button>
+      <button class="opt-btn" data-q="3" data-v="mix">人と話す時間と、ひとり作業の時間が半々くらい</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q2">もどる</button>
+      <button class="btn-next" id="nx3" disabled data-to="q4">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="screen" id="s-q4">
+    <div class="progress-bar"><div class="progress-fill" style="width:56%"></div></div>
+    <div class="top-label">4 / 7</div>
+    <div class="q-text">「頑張った」と思えるのはどんなとき？</div>
+    <div class="sub-text">自分らしいと思う場面を選んでね</div>
+    <div class="options" id="o4">
+      <button class="opt-btn" data-q="4" data-v="deep">ひとつのことをじっくり、深く調べ終わったとき</button>
+      <button class="opt-btn" data-q="4" data-v="help">誰かの役に立てた、喜んでもらえたとき</button>
+      <button class="opt-btn" data-q="4" data-v="create">自分の手で何かを完成させたとき</button>
+      <button class="opt-btn" data-q="4" data-v="growth">昨日の自分より、少し成長できたとき</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q3">もどる</button>
+      <button class="btn-next" id="nx4" disabled data-to="q5">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="screen" id="s-q5">
+    <div class="progress-bar"><div class="progress-fill" style="width:70%"></div></div>
+    <div class="top-label">5 / 7</div>
+    <div class="q-text">職場の人間関係、どんなのが安心？</div>
+    <div class="sub-text">「こうだといいな」と思うもの</div>
+    <div class="options" id="o5">
+      <button class="opt-btn" data-q="5" data-v="honest">思ったことをはっきり言ってくれる人が多い</button>
+      <button class="opt-btn" data-q="5" data-v="calm">穏やかで、感情の波が少ない雰囲気</button>
+      <button class="opt-btn" data-q="5" data-v="respect">自分のやり方を尊重してくれる</button>
+      <button class="opt-btn" data-q="5" data-v="support">困ったときに一緒に考えてくれる</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q4">もどる</button>
+      <button class="btn-next" id="nx5" disabled data-to="q6">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="screen" id="s-q6">
+    <div class="progress-bar"><div class="progress-fill" style="width:84%"></div></div>
+    <div class="top-label">6 / 7</div>
+    <div class="q-text">成果のはかられ方、どんなほうがラク？</div>
+    <div class="sub-text">正直に、自分がしんどくないものを</div>
+    <div class="options" id="o6">
+      <button class="opt-btn" data-q="6" data-v="self">他の人と比べずに、自分の成長で見てほしい</button>
+      <button class="opt-btn" data-q="6" data-v="quality">数字より、質や丁寧さを見てほしい</button>
+      <button class="opt-btn" data-q="6" data-v="number">明確な数字で、客観的に見てもらうほうが安心</button>
+      <button class="opt-btn" data-q="6" data-v="process">結果だけでなく、プロセスも見てほしい</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q5">もどる</button>
+      <button class="btn-next" id="nx6" disabled data-to="q7">つぎへ</button>
+    </div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="screen" id="s-q7">
+    <div class="progress-bar"><div class="progress-fill" style="width:96%"></div></div>
+    <div class="top-label">7 / 7　最後の質問</div>
+    <div class="q-text">今、仕事探しで一番知りたいのは？</div>
+    <div class="sub-text">今の気持ちに近いもの</div>
+    <div class="options" id="o7">
+      <button class="opt-btn" data-q="7" data-v="jobs">自分に合いそうな職種を知りたい</button>
+      <button class="opt-btn" data-q="7" data-v="consult">どこに相談すればいいか知りたい</button>
+      <button class="opt-btn" data-q="7" data-v="both">どちらも知りたい</button>
+      <button class="opt-btn" data-q="7" data-v="think">まだ漠然としていて、まず整理したい</button>
+    </div>
+    <div class="nav-row">
+      <button class="btn-back" data-to="q6">もどる</button>
+      <button class="btn-next" id="nx7" disabled data-to="result">結果を見る</button>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <div class="screen" id="s-result">
+    <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:0.4rem;">あなたの回答から</div>
+    <div style="font-size:20px;font-weight:500;color:#1a1a1a;line-height:1.55;margin-bottom:0.4rem;" id="r-headline"></div>
+    <div style="font-size:13px;color:#6b7280;line-height:1.7;margin-bottom:0.25rem;" id="r-sub"></div>
+    <div id="r-jobs"></div>
+    <div id="r-consult"></div>
+    <div class="hint-box">これはあくまで「入口」のヒントです。気になった仕事や相談先を、ゆっくり調べてみてね。</div>
+    <div style="margin-top:1.5rem;">
+      <button class="btn-sub" id="btn-restart">もう一度やってみる</button>
+    </div>
+  </div>
+
+</div>
+<script>
+(function() {
+  var ans = {};
+
+  function show(id) {
+    document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+    var el = document.getElementById('s-' + id);
+    if (el) { el.classList.add('active'); window.scrollTo(0, 0); }
+  }
+
+  document.getElementById('btn-start').addEventListener('click', function() { show('q1'); });
+  document.getElementById('btn-restart').addEventListener('click', function() { ans = {}; show('intro'); });
+
+  document.querySelectorAll('.btn-back').forEach(function(btn) {
+    btn.addEventListener('click', function() { show(btn.getAttribute('data-to')); });
+  });
+
+  document.querySelectorAll('.btn-next').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var to = btn.getAttribute('data-to');
+      if (to === 'result') buildResult();
+      show(to);
+    });
+  });
+
+  document.querySelectorAll('.opt-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var q = btn.getAttribute('data-q');
+      var v = btn.getAttribute('data-v');
+      ans['q' + q] = v;
+      document.querySelectorAll('#o' + q + ' .opt-btn').forEach(function(b) {
+        b.style.background = '';
+        b.style.border = '';
+        b.style.color = '';
+        b.style.fontWeight = '';
+      });
+      btn.style.background = '#E1F5EE';
+      btn.style.border = '2px solid #1D9E75';
+      btn.style.color = '#085041';
+      btn.style.fontWeight = '500';
+      var nx = document.getElementById('nx' + q);
+      if (nx) nx.disabled = false;
+    });
+  });
+
+  var jobPool = {
+    deep: [
+      { t: '校正・編集補助', d: '文章や資料を丁寧に読み込んで確認する仕事。静かな環境でひとり集中でき、ルールに沿って進めやすい。出版社・制作会社・在宅案件が多い。', tags: ['静かな環境','ひとり集中','ルール明確'], links: [{ label: 'doda で探す', url: 'https://doda.jp/keyword/%E6%A0%A1%E6%AD%A3%E3%80%80%E6%A0%A1%E9%96%B2/' }, { label: 'マイナビ転職 で探す', url: 'https://tenshoku.mynavi.jp/shutoken/list/p13/o1A210/' }] },
+      { t: 'リサーチ・文献調査スタッフ（NPO・研究機関）', d: '福祉・教育・社会系テーマを深く掘り下げる仕事。「調べること」「まとめること」が業務の中心で、少人数の組織が多い。', tags: ['深く調べる','少人数','テキスト中心'], links: [{ label: 'DRIVEキャリア で探す', url: 'https://drivecareer.etic.or.jp/search/jobs?q%5Bgroup_type_eq%5D=NPO%2FNGO' }, { label: 'マイナビ転職（NPO）で探す', url: 'https://tenshoku.mynavi.jp/sp/npo180316/' }] },
+      { t: '図書館スタッフ（司書・補助）', d: '資料の整理・分類・貸出サポートなど、毎日の流れが決まっている仕事。静かな空間で、ひとつひとつ確実に進めやすい。', tags: ['ルーティン','静か','明確なタスク'], links: [{ label: 'マイナビ転職 で探す', url: 'https://tenshoku.mynavi.jp/ft/library/' }, { label: '図書館ジョブ で探す', url: 'https://lib.job1st.net/' }] }
+    ],
+    help: [
+      { t: '記録・ドキュメント作成スタッフ（福祉・保育）', d: '施設での支援記録や保育記録の作成・整理を担う仕事。「観察して言語化する」役割で、定型フォーマットに沿って進められるので曖昧さが少ない。', tags: ['言語化','定型あり','少人数'], links: [{ label: 'エン転職（団体・NPO）で探す', url: 'https://employment.en-japan.com/s_shokuin/' }, { label: 'DRIVEキャリア で探す', url: 'https://drivecareer.etic.or.jp/search/jobs?q%5Bgroup_type_eq%5D=NPO%2FNGO' }] },
+      { t: 'NPO・支援団体の事務・広報補助', d: '社会課題に関わりながらも担当業務が明確。資料作成・情報発信・データ整理など、ひとりで進められるタスクが多い小規模な団体が多い。', tags: ['使命感','担当明確','少人数'], links: [{ label: 'DRIVEキャリア で探す', url: 'https://drivecareer.etic.or.jp/search/jobs?q%5Bgroup_type_eq%5D=NPO%2FNGO' }, { label: 'マイナビ転職（NPO）で探す', url: 'https://tenshoku.mynavi.jp/sp/npo180316/' }] },
+      { t: 'Webライター（社会・福祉・教育テーマ）', d: '関心のあるテーマについて書く仕事。リサーチ→執筆型の案件なら静かにひとりで完結しやすく、在宅・リモートが多い。', tags: ['在宅可','自分ペース','興味×言語化'], links: [{ label: 'doda で探す', url: 'https://doda.jp/keyword/%E6%A0%A1%E6%AD%A3%E3%80%80%E6%A0%A1%E9%96%B2/' }, { label: 'エン転職 で探す', url: 'https://employment.en-japan.com/s_shokuin/' }] }
+    ],
+    create: [
+      { t: 'データ入力・一般事務（在宅・リモート可）', d: '情報の整理、入力、ファイリングなど、タスクがひとつひとつ明確な仕事。完了の実感を積み重ねやすく、在宅・正社員登用ありの案件も多い。', tags: ['明確なタスク','在宅可','ルーティン'], links: [{ label: 'doda（在宅事務）で探す', url: 'https://doda.jp/keyword/%E3%83%87%E3%83%BC%E3%82%BF%E5%85%A5%E5%8A%9B%E3%80%80%E5%9C%A8%E5%AE%85/' }, { label: 'マイナビ転職 で探す', url: 'https://tenshoku.mynavi.jp/jobinfo-457463-1-2-1/' }] },
+      { t: 'DTPオペレーター・レイアウト補助', d: '冊子・チラシ・資料のレイアウトを整える仕事。決められたフォーマットの中で丁寧に仕上げる作業が中心で、静かな環境でひとり集中しやすい。', tags: ['ひとり作業','フォーマットあり','完成の実感'], links: [{ label: 'doda で探す', url: 'https://doda.jp/keyword/%E6%A0%A1%E6%AD%A3%E3%80%80%E6%A0%A1%E9%96%B2/' }, { label: 'マイナビ転職（編集・校正）で探す', url: 'https://tenshoku.mynavi.jp/shutoken/list/p13/o1A210/' }] },
+      { t: 'Webコンテンツ・SNS運用補助', d: '記事の更新・画像作成・投稿スケジュール管理など、担当業務が明確なポジション。在宅・リモートが多く自分のペースで進めやすい。', tags: ['在宅可','担当明確','自分ペース'], links: [{ label: 'エン転職 で探す', url: 'https://employment.en-japan.com/s_shokuin/' }, { label: 'doda で探す', url: 'https://doda.jp/keyword/%E3%83%87%E3%83%BC%E3%82%BF%E5%85%A5%E5%8A%9B%E3%80%80%E5%9C%A8%E5%AE%85/' }] }
+    ],
+    growth: [
+      { t: 'NPO・社会的事業の事務・企画補助', d: '使命に共感しながら働ける少人数の環境。役割が明確な職場なら自分のペースで成長を積み上げやすく、小さな担当から始められる。', tags: ['少人数','使命感','自分ペース'], links: [{ label: 'DRIVEキャリア で探す', url: 'https://drivecareer.etic.or.jp/search/jobs?q%5Bgroup_type_eq%5D=NPO%2FNGO' }, { label: 'マイナビ転職（NPO）で探す', url: 'https://tenshoku.mynavi.jp/sp/npo180316/' }] },
+      { t: '図書館スタッフ・司書補助', d: '毎日の流れが決まった静かな環境で、少しずつ専門性を積み上げられる。司書資格の取得を目指しながら働く道もある。', tags: ['資格を積む','静か','ルーティン'], links: [{ label: 'マイナビ転職 で探す', url: 'https://tenshoku.mynavi.jp/ft/library/' }, { label: '図書館ジョブ で探す', url: 'https://lib.job1st.net/' }] }
+    ]
+  };
+
+  var consultPool = [
+    { n: '大学の学生相談室・キャリアセンター', note: '「なんとなくしんどい」「就活の前にまず話したい」という段階から利用できる。予約して一対一で話せる。進路の相談だけでなく、働き方の不安も話せる窓口。', tag: 'まずここから', tc: 'bg' },
+    { n: '就労移行支援事業所', note: '「自分のペースで働きたい」「環境選びに迷っている」という人が、仕事に向けた準備を一緒にできる場所。週数回から通えるところも多く、在学中から見学・相談できる事業所もある。', tag: '自分のペースで準備', tc: 'bb' },
+    { n: '生きづらさ・働き方の相談窓口（各都道府県）', note: '「なんとなく生きづらい」「人とのペースが合わない」と感じている人の相談に対応している公的な窓口。予約制で一対一の面談が基本。就職・生活・人間関係など幅広く話せる。', tag: '気持ちから整理したい', tc: 'ba' },
+    { n: 'ハローワーク・若者サポートステーション', note: '「自分に合った仕事の種類や環境を一緒に考えてほしい」という相談ができる窓口。無料で使えて、求人紹介だけでなく職場選びの条件を整理するサポートもある。', tag: '就職活動のとき', tc: 'bg' },
+    { n: 'NPO・よりそい型の若者支援団体', note: '「まだ就職活動という段階じゃない」「気持ちを整理したい」という状態でも話を聞いてくれる団体。対面・オンライン・チャット相談など、自分が楽な方法を選べる。', tag: '話を聞いてほしいだけでも', tc: 'bb' }
+  ];
+
+  var headlines = {
+    deep: 'じっくり深く取り組める仕事が、きっと合います。',
+    help: '自分の関心を活かして、間接的に誰かの役に立てる仕事が向いていそうです。',
+    create: '自分の手で完成させる仕事が、自分のペースを活かせます。',
+    growth: '少しずつ積み上げていける環境が、一番力を発揮できそうです。'
+  };
+  var subs = {
+    deep: '情報を丁寧に扱い、ひとつひとつを確かめながら進める力は、本当に貴重な強みです。',
+    help: '人の気持ちに関心を持ちながら、自分の担当範囲で力を発揮できる仕事が長続きしやすいです。',
+    create: '完成した瞬間の達成感を積み重ねながら働ける仕事が、長く続けやすいです。',
+    growth: '昨日の自分を超えることを励みにできる人は、少人数でじっくり育つ環境が向いています。'
+  };
+
+  function buildResult() {
+    var key = ans.q4 || 'deep';
+    document.getElementById('r-headline').textContent = headlines[key];
+    document.getElementById('r-sub').textContent = subs[key];
+
+    var showJobs = (ans.q7 !== 'consult');
+    var showConsult = (ans.q7 !== 'jobs');
+    var cls = ['bg','bb','ba'];
+
+    var jobEl = document.getElementById('r-jobs');
+    jobEl.innerHTML = '';
+    if (showJobs) {
+      var jobs = jobPool[key] || jobPool['deep'];
+      var html = '<div class="result-label">合いそうな仕事のイメージ</div>';
+      jobs.forEach(function(j) {
+        var badges = j.tags.map(function(t, i) { return '<span class="badge ' + cls[i%3] + '">' + t + '</span>'; }).join('');
+        var links = j.links.map(function(l) { return '<a class="job-link" href="' + l.url + '" target="_blank" rel="noopener">&#8599; ' + l.label + '</a>'; }).join('');
+        html += '<div class="job-card"><div class="job-title">' + j.t + '</div><div class="job-desc">' + j.d + '</div><div class="fit-row">' + badges + '</div><div class="job-links">' + links + '</div><div class="link-note">※リンク先は求人サイトの検索結果です。正社員・未経験可などで絞り込んで探してみてね。</div></div>';
+      });
+      jobEl.innerHTML = html;
+    }
+
+    var consultEl = document.getElementById('r-consult');
+    consultEl.innerHTML = '';
+    if (showConsult) {
+      var ch = '<div class="result-label">相談できる場所</div>';
+      consultPool.forEach(function(c) {
+        ch += '<div class="consult-card"><div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;"><div class="consult-name">' + c.n + '</div><span class="badge ' + c.tc + '" style="white-space:nowrap;">' + c.tag + '</span></div><div class="consult-note">' + c.note + '</div></div>';
+      });
+      consultEl.innerHTML = ch;
+    }
+  }
+})();
+</script>
+</body>
+</html>
